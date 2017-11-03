@@ -22,6 +22,7 @@
 #include "script_component.hpp"
 
 params [["_set",true,[true]], ["_force",true,[true]], ["_hide",true,[true]]];
+TRACE_3("Params",_set,_force,_hide);
 
 // Only clients can be spectators
 if !(hasInterface) exitWith {};
@@ -33,10 +34,10 @@ GVAR(uiForced) = _force;
 // Exit if no change (everything above this may need to be ran again)
 if (_set isEqualTo GVAR(isSet)) exitWith {};
 
-// Delay if local player (must not be ACE_Player) is not fully initalized
-if (isNil { player } || { isNull player }) exitWith {
+// Delay if local player (must not be ACE_Player) does not exist
+if (isNull player) exitWith {
     [
-        { !isNil { player } && { !isNull player } },
+        { !isNull player },
         FUNC(setSpectator),
         _this
     ] call CBA_fnc_waitUntilAndExecute;
@@ -73,7 +74,7 @@ if (_set) then {
         EGVAR(nametags,showNamesForAI) = false;
     };
 } else {
-    // Kill the display (ensure main display exists, handles edge case where spectator turned off before display exists)
+    // Kill the display (ensure main display exists, handles edge case where spectator turned off beforehand)
     [{ !isNull MAIN_DISPLAY },{ [false] call FUNC(ui) }] call CBA_fnc_waitUntilAndExecute;
 
     // This variable doesn't matter anymore
@@ -109,8 +110,13 @@ if (alive player) then {
     [player, _hidden, QGVAR(isSet), side group player] call EFUNC(common,switchToGroupSide);
 
     // Ghosts can't talk
-    [player, QGVAR(isSet)] call EFUNC(common,hideUnit);
-    [player, QGVAR(isSet)] call EFUNC(common,muteUnit);
+    if (_hidden) then {
+        [player, QGVAR(isSet)] call EFUNC(common,hideUnit);
+        [player, QGVAR(isSet)] call EFUNC(common,muteUnit);
+    } else {
+        [player, QGVAR(isSet)] call EFUNC(common,unhideUnit);
+        [player, QGVAR(isSet)] call EFUNC(common,unmuteUnit);
+    };
 };
 
 // Reset interruptions
@@ -118,6 +124,6 @@ GVAR(interrupts) = [];
 
 // Mark spectator state for reference
 GVAR(isSet) = _set;
-player setVariable [QGVAR(isSet), true, true];
+player setVariable [QGVAR(isSet), _set, true];
 
 ["ace_spectatorSet", [_set, player]] call CBA_fnc_globalEvent;

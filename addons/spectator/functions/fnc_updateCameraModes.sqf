@@ -28,12 +28,11 @@ if !(EGVAR(common,settingsInitFinished)) exitWith {
 };
 
 params [["_addModes",[],[[]]], ["_removeModes",[],[[]]]];
-private ["_newModes","_currentModes"];
 
-_currentModes = GVAR(availableModes);
+private _currentModes = GVAR(availableModes);
 
 // Restrict additions to only possible values
-_newModes = _addModes arrayIntersect ALL_MODES;
+private _newModes = _addModes arrayIntersect ALL_MODES;
 _newModes append (_currentModes - _removeModes);
 
 _newModes = _newModes arrayIntersect _newModes;
@@ -49,7 +48,7 @@ if (_newModes isEqualTo []) then {
 // Update camera in case of change
 if !(isNil QGVAR(camera)) then {
     // If mode was free and no longer available, find a focus
-    if (!(MODE_FREE in _newModes) && {GVAR(camMode) == MODE_FREE} && {isNull GVAR(camTarget)}) then {
+    if (!(MODE_FREE in _newModes) && {GVAR(camMode) == MODE_FREE} && {isNull GVAR(camFocus)}) then {
         [true] call FUNC(setFocus);
     };
 
